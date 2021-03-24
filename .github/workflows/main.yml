@@ -1,0 +1,22 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+      - name: Use gcloud CLI
+        run: gcloud info
+      - name: Clone repo to the instance "demo-01"
+        run: gcloud compute ssh --zone "northamerica-northeast1-c" "demo-01" --project "joyride-terraform-us-testing" --quiet 
+             --command="sudo rm -rf /tmp/joyride && sudo git clone https://github.com/gcpcloud9331/joyride-demo.git /tmp/joyride/ && sudo cp -r /tmp/joyride/* /root/app/"
