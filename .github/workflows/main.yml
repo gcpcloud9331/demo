@@ -17,6 +17,6 @@ jobs:
           export_default_credentials: true
       - name: Use gcloud CLI
         run: gcloud info
-      - name: Clone repo to the instance "demo-01"
-        run: gcloud compute ssh --zone "northamerica-northeast1-c" "demo-01" --project "joyride-terraform-us-testing" --quiet 
-             --command="sudo rm -rf /tmp/joyride && sudo git clone https://github.com/gcpcloud9331/joyride-demo.git /tmp/joyride/ && sudo cp -r /tmp/joyride/* /root/app/"
+      - name: Clone repo to the instances in "cicd-demo" instance group
+        run: for instance in $(gcloud compute instance-groups managed list-instances cicd-demo --zone us-central1-a --format="value(NAME)"); do gcloud compute ssh --zone "us-central1-a" $instance --project "joyride-terraform-us-testing" --quiet 
+             --command="sudo rm -rf /tmp/joyride && sudo git clone https://github.com/gcpcloud9331/joyride-demo.git /tmp/joyride/ && sudo cp -r /tmp/joyride/* /root/app/"; done
