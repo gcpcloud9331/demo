@@ -2,9 +2,20 @@ from flask import Flask
 from transformers import BertTokenizer, BertForMaskedLM
 from torch.nn import functional as F
 import torch
-
+from healthcheck import HealthCheck
+import http.client
 
 app = Flask(__name__)
+health = HealthCheck()
+
+def check_health():
+    conn = http.client.HTTPConnection("localhost", 8080)
+    conn.request("GET", "/")
+    res = conn.getresponse()
+    if res.status == 200:
+        return True, "app healthy"
+
+health.add_check(check_health)
 
 @app.route('/')
 def predict():
@@ -22,7 +33,7 @@ def predict():
         word = tokenizer.decode([token])
         new_sentence = text.replace(tokenizer.mask_token, word)
         return str(new_sentence)
-
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080, debug=True)
     
+if __name__ == '__main__':
+    app.add_url_rule("/healthcheck", "healthcheck", view_func=lambda: health.run())
+    app.run(host="0.0.0.0", port=8080, debug=True)
